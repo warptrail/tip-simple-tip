@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tip Calculator</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 2rem;
+        max-width: 400px;
+        margin: auto;
+      }
+      label,
+      output {
+        display: block;
+        margin-top: 1rem;
+      }
+      input[type='range'] {
+        width: 100%;
+      }
+      .output {
+        margin-top: 1.5rem;
+        font-size: 1.2rem;
+      }
+      input[type='text'] {
+        width: 100%;
+        font-size: 1.1rem;
+        padding: 0.4rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Tip Calculator</h1>
+
+    <label for="amount">Bill Amount ($):</label>
+    <input type="text" id="amount" inputmode="numeric" />
+
+    <label for="tip">Tip Percentage: <span id="tip-label">20%</span></label>
+    <input type="range" id="tip" min="0" max="11" value="5" />
+
+    <div class="output">
+      <p>Tip Amount: <strong id="tip-amount">$0.00</strong></p>
+      <p>Total Amount: <strong id="total-amount">$0.00</strong></p>
+    </div>
+
+    <script>
+      const amountInput = document.getElementById('amount');
+      const tipInput = document.getElementById('tip');
+      const tipLabel = document.getElementById('tip-label');
+      const tipAmountEl = document.getElementById('tip-amount');
+      const totalAmountEl = document.getElementById('total-amount');
+
+      const tipOptions = [8, 10, 12, 15, 18, 20, 22, 25, 28, 30, 33, 50];
+
+      let debounceTimeout;
+      let rawCents = '';
+
+      function formatAmountInput(value) {
+        const cents = value.padStart(3, '0');
+        const dollars = cents.slice(0, -2);
+        const fractional = cents.slice(-2);
+        return `${parseInt(dollars)}.${fractional}`;
+      }
+
+      amountInput.addEventListener('input', (e) => {
+        const digits = e.target.value.replace(/\D/g, '');
+        rawCents = digits;
+        const formatted = formatAmountInput(rawCents);
+        e.target.value = formatted;
+        clearTimeout(debounceTimeout);
+        debounceTimeout = setTimeout(calculateTip, 750);
+      });
+
+      tipInput.addEventListener('input', calculateTip);
+
+      function calculateTip() {
+        const billAmount = parseFloat(amountInput.value);
+        const tipPercentage = tipOptions[parseInt(tipInput.value)];
+
+        tipLabel.textContent = `${tipPercentage}%`;
+
+        if (isNaN(billAmount) || billAmount < 1) {
+          tipAmountEl.textContent = '$0.00';
+          totalAmountEl.textContent = '$0.00';
+          return;
+        }
+
+        const tipAmount = billAmount * (tipPercentage / 100);
+        const totalAmount = billAmount + tipAmount;
+
+        tipAmountEl.textContent = `$${tipAmount.toFixed(2)}`;
+        totalAmountEl.textContent = `$${totalAmount.toFixed(2)}`;
+      }
+
+      // Initial display
+      amountInput.value = '0.00';
+      calculateTip();
+    </script>
+  </body>
+</html>
